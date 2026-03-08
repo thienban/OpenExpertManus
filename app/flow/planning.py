@@ -121,6 +121,16 @@ class PlanningFlow(BaseFlow):
                 # Execute current step with appropriate agent
                 step_type = step_info.get("type") if step_info else None
                 executor = self.get_executor(step_type)
+
+                # Emit step start progress
+                progress_data = {
+                    "type": "step_start",
+                    "index": self.current_step_index,
+                    "step": step_info.get("text", ""),
+                    "agent": executor.name
+                }
+                logger.info(f"[PROGRESS] {json.dumps(progress_data)}")
+
                 step_result = await self._execute_step(executor, step_info)
                 result += step_result + "\n"
 
@@ -195,6 +205,16 @@ class PlanningFlow(BaseFlow):
                     result = await self.planning_tool.execute(**args)
 
                     logger.info(f"Plan creation result: {str(result)}")
+
+                    # Emit structured progress for frontend
+                    plan_data = self.planning_tool.plans.get(self.active_plan_id, {})
+                    progress_data = {
+                        "type": "plan_created",
+                        "plan_id": self.active_plan_id,
+                        "title": plan_data.get("title", "Plan"),
+                        "steps": plan_data.get("steps", [])
+                    }
+                    logger.info(f"[PROGRESS] {json.dumps(progress_data)}")
                     return
 
         # If execution reached here, create a default plan
@@ -209,6 +229,15 @@ class PlanningFlow(BaseFlow):
                 "steps": ["Analyze request", "Execute task", "Verify results"],
             }
         )
+
+        # Emit structured progress for frontend (default plan)
+        progress_data = {
+            "type": "plan_created",
+            "plan_id": self.active_plan_id,
+            "title": f"Plan for: {request[:50]}...",
+            "steps": ["Analyze request", "Execute task", "Verify results"]
+        }
+        logger.info(f"[PROGRESS] {json.dumps(progress_data)}")
 
     async def _get_current_step_info(self) -> tuple[Optional[int], Optional[dict]]:
         """
@@ -319,6 +348,13 @@ class PlanningFlow(BaseFlow):
             logger.info(
                 f"Marked step {self.current_step_index} as completed in plan {self.active_plan_id}"
             )
+
+            # Emit step complete progress
+            progress_data = {
+                "type": "step_complete",
+                "index": self.current_step_index
+            }
+            logger.info(f"[PROGRESS] {json.dumps(progress_data)}")
         except Exception as e:
             logger.warning(f"Failed to update plan status: {e}")
             # Update step status directly in planning tool storage

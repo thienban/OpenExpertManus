@@ -8,9 +8,12 @@ from app.flow.flow_factory import FlowFactory, FlowType
 from app.logger import logger
 
 
+from app.agent.marketing import AgentMarketing
+
 async def run_flow():
     agents = {
         "manus": Manus(),
+        "marketing": AgentMarketing(),
     }
     if config.run_flow_config.use_data_analysis_agent:
         agents["data_analysis"] = DataAnalysis()
