@@ -2,30 +2,41 @@
   <img src="assets/logo.jpg" width="200"/>
 </p>
 
-English | [中文](README_zh.md) | [한국어](README_ko.md) | [日本語](README_ja.md)
+## 🎯 OpenExpertManus — Specialized Agent Platform
 
-[![GitHub stars](https://img.shields.io/github/stars/FoundationAgents/OpenManus?style=social)](https://github.com/FoundationAgents/OpenManus/stargazers)
-&ensp;
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) &ensp;
-[![Discord Follow](https://dcbadge.vercel.app/api/server/DYn29wFk9z?style=flat)](https://discord.gg/DYn29wFk9z)
-[![Demo](https://img.shields.io/badge/Demo-Hugging%20Face-yellow)](https://huggingface.co/spaces/lyh-917/OpenManusDemo)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15186407.svg)](https://doi.org/10.5281/zenodo.15186407)
+This fork extends OpenManus with a **full-stack platform** for building domain-specific expert agents, each focused on a vertical use case.
 
-# 👋 OpenManus
+### Architecture
 
-Manus is incredible, but OpenManus can achieve any idea without an *Invite Code* 🛫!
+```
+OpenExpertManus
+├── app/
+│   ├── agent/          # Specialized agents
+│   │   ├── marketing.py      # MarketingAgent — SERP, PAA, keyword research
+│   │   ├── linkedin.py       # LinkedInAgent  — lead generation via browser
+│   │   └── toolcall.py       # Base ToolCall agent
+│   ├── tool/           # Shared tools (browser_use, web_search, crawl4ai…)
+│   ├── flow/           # Multi-agent orchestration (PlanningFlow)
+│   └── api/            # FastAPI backend (SSE streaming)
+├── frontend/           # Next.js 15 dashboard (App Router, TypeScript)
+│   ├── src/app/        # Pages (campaigns, reports…)
+│   ├── src/components/ # UI components (AgentFeed, chat-ui…)
+│   └── src/hooks/      # useCampaignStream — live SSE feed
+├── config/config.toml  # LLM, browser, LinkedIn credentials
+└── run_api.py          # FastAPI dev server
+```
 
-Our team members [@Xinbin Liang](https://github.com/mannaandpoem) and [@Jinyu Xiang](https://github.com/XiangJinyu) (core authors), along with [@Zhaoyang Yu](https://github.com/MoshiQAQ), [@Jiayi Zhang](https://github.com/didiforgithub), and [@Sirui Hong](https://github.com/stellaHSR), we are from [@MetaGPT](https://github.com/geekan/MetaGPT). The prototype is launched within 3 hours and we are keeping building!
+### Specialized Agents
 
-It's a simple implementation, so we welcome any suggestions, contributions, and feedback!
+| Agent | File | Capabilities |
+|---|---|---|
+| **MarketingAgent** | `app/agent/marketing.py` | SERP audit, PAA analysis, keyword research |
+| **LinkedInAgent** | `app/agent/linkedin.py` | Lead generation, profile scraping via `browser_use` |
+| **Manus** | `app/agent/manus.py` | General-purpose tool-calling agent |
 
-Enjoy your own agent with OpenManus!
-
-We're also excited to introduce [OpenManus-RL](https://github.com/OpenManus/OpenManus-RL), an open-source project dedicated to reinforcement learning (RL)- based (such as GRPO) tuning methods for LLM agents, developed collaboratively by researchers from UIUC and OpenManus.
+Agents are orchestrated via `PlanningFlow` (see `app/flow/planning.py`) and exposed through a REST + SSE API.
 
 ## Project Demo
-
-<video src="https://private-user-images.githubusercontent.com/61239030/420168772-6dcfd0d2-9142-45d9-b74e-d10aa75073c6.mp4?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NDEzMTgwNTksIm5iZiI6MTc0MTMxNzc1OSwicGF0aCI6Ii82MTIzOTAzMC80MjAxNjg3NzItNmRjZmQwZDItOTE0Mi00NWQ5LWI3NGUtZDEwYWE3NTA3M2M2Lm1wND9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNTAzMDclMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjUwMzA3VDAzMjIzOVomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTdiZjFkNjlmYWNjMmEzOTliM2Y3M2VlYjgyNDRlZDJmOWE3NWZhZjE1MzhiZWY4YmQ3NjdkNTYwYTU5ZDA2MzYmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0In0.UuHQCgWYkh0OQq9qsUWqGsUbhG3i9jcZDAMeHjLt5T4" data-canonical-src="https://private-user-images.githubusercontent.com/61239030/420168772-6dcfd0d2-9142-45d9-b74e-d10aa75073c6.mp4?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NDEzMTgwNTksIm5iZiI6MTc0MTMxNzc1OSwicGF0aCI6Ii82MTIzOTAzMC80MjAxNjg3NzItNmRjZmQwZDItOTE0Mi00NWQ5LWI3NGUtZDEwYWE3NTA3M2M2Lm1wND9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNTAzMDclMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjUwMzA3VDAzMjIzOVomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTdiZjFkNjlmYWNjMmEzOTliM2Y3M2VlYjgyNDRlZDJmOWE3NWZhZjE1MzhiZWY4YmQ3NjdkNTYwYTU5ZDA2MzYmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0In0.UuHQCgWYkh0OQq9qsUWqGsUbhG3i9jcZDAMeHjLt5T4" controls="controls" muted="muted" class="d-block rounded-bottom-2 border-top width-fit" style="max-height:640px; min-height: 200px"></video>
 
 ## Installation
 
@@ -73,8 +84,10 @@ cd OpenManus
 ```bash
 uv venv --python 3.12
 source .venv/bin/activate  # On Unix/macOS
-# Or on Windows:
-# .venv\Scripts\activate
+# Or on Windows (Command Prompt/PowerShell):
+.venv\Scripts\activate
+# Or on Windows (Git Bash):
+source .venv/Scripts/activate
 ```
 
 4. Install dependencies:
@@ -137,6 +150,48 @@ For unstable multi-agent version, you also can run:
 python run_flow.py
 ```
 
+### Run the FastAPI Backend
+
+To start the API server for the front-end (Marketing Agent, etc.):
+
+```bash
+python run_api.py
+```
+
+The API runs on `http://localhost:8000`. Endpoints:
+- `POST /campaigns/run` — start a campaign (streams progress via SSE)
+- `GET /campaigns/{id}/stream` — live SSE feed for the frontend
+- `GET /health` — health check
+
+### Run the Frontend Dashboard
+
+The frontend is a **Next.js 15** app (App Router, TypeScript, Tailwind CSS, shadcn/ui).
+
+```bash
+cd frontend
+bun install        # or: npm install
+bun run dev        # starts on http://localhost:3000
+```
+
+> Requires **Bun** or **Node.js ≥ 18**. The frontend connects to the API at `http://localhost:8000` by default.
+
+**Key pages:**
+- `/` — Campaign dashboard
+- `/campaigns/[id]` — Live agent feed (thoughts, tool calls, progress)
+- `/reports` — Generated markdown reports
+
+### LinkedIn Credentials (for LinkedInAgent)
+
+Add your LinkedIn credentials to `config/config.toml` to enable automated lead generation:
+
+```toml
+[linkedin]
+email = "your@email.com"
+password = "yourpassword"
+```
+
+The agent will call `browser_use` with action `linkedin_login` before scraping.
+
 ### Custom Adding Multiple Agents
 
 Currently, besides the general OpenManus Agent, we have also integrated the DataAnalysis Agent, which is suitable for data analysis and data visualization tasks. You can add this agent to `run_flow` in `config.toml`.
@@ -148,39 +203,6 @@ use_data_analysis_agent = true     # Disabled by default, change to true to acti
 ```
 In addition, you need to install the relevant dependencies to ensure the agent runs properly: [Detailed Installation Guide](app/tool/chart_visualization/README.md##Installation)
 
-## How to contribute
-
-We welcome any friendly suggestions and helpful contributions! Just create issues or submit pull requests.
-
-Or contact @mannaandpoem via 📧email: mannaandpoem@gmail.com
-
-**Note**: Before submitting a pull request, please use the pre-commit tool to check your changes. Run `pre-commit run --all-files` to execute the checks.
-
-## Community Group
-Join our networking group on Feishu and share your experience with other developers!
-
-<div align="center" style="display: flex; gap: 20px;">
-    <img src="assets/community_group.jpg" alt="OpenManus 交流群" width="300" />
-</div>
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=FoundationAgents/OpenManus&type=Date)](https://star-history.com/#FoundationAgents/OpenManus&Date)
-
-## Sponsors
-Thanks to [PPIO](https://ppinfra.com/user/register?invited_by=OCPKCN&utm_source=github_openmanus&utm_medium=github_readme&utm_campaign=link) for computing source support.
-> PPIO: The most affordable and easily-integrated MaaS and GPU cloud solution.
-
-
-## Acknowledgement
-
-Thanks to [anthropic-computer-use](https://github.com/anthropics/anthropic-quickstarts/tree/main/computer-use-demo), [browser-use](https://github.com/browser-use/browser-use) and [crawl4ai](https://github.com/unclecode/crawl4ai) for providing basic support for this project!
-
-Additionally, we are grateful to [AAAJ](https://github.com/metauto-ai/agent-as-a-judge), [MetaGPT](https://github.com/geekan/MetaGPT), [OpenHands](https://github.com/All-Hands-AI/OpenHands) and [SWE-agent](https://github.com/SWE-agent/SWE-agent).
-
-We also thank stepfun(阶跃星辰) for supporting our Hugging Face demo space.
-
-OpenManus is built by contributors from MetaGPT. Huge thanks to this agent community!
 
 ## Cite
 ```bibtex
