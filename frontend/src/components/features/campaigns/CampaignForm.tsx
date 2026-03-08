@@ -20,14 +20,14 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
 
 const campaignFormSchema = z.object({
-    agentId: z.string({
-        required_error: "Please select an agent.",
-    }),
+    agentId: z.string().min(1, { message: "Please select an agent." }),
     keyword: z.string().min(2, {
         message: "Keyword must be at least 2 characters.",
     }),
@@ -64,6 +64,7 @@ const marketingObjectives = [
 
 export function CampaignForm() {
     const router = useRouter()
+    const [isLoading, setIsLoading] = useState(false)
 
     const form = useForm<CampaignFormValues>({
         resolver: zodResolver(campaignFormSchema),
@@ -73,15 +74,37 @@ export function CampaignForm() {
     // Watch the selected agent to conditionally render fields
     const selectedAgentId = form.watch("agentId")
 
-    function onSubmit(data: CampaignFormValues) {
-        // Navigate to a new campaign running interface with the ID.
-        // In a real app, you would POST this to the backend, get a run ID, and then route to it.
-        // For now, we mock generating an ID and passing payload via context or URL params
-        // (though URL params not recommended for full payload).
-        const mockRunId = "run_" + Math.random().toString(36).substring(7);
+    async function onSubmit(data: CampaignFormValues) {
+        setIsLoading(true)
+        try {
+            // Build the prompt based on objectives
+            let promptText = data.keyword
+                ? `Keyword: ${data.keyword}\nObjectives: ${data.objectives.join(', ')}`
+                : "Execute generic marketing task";
 
-        // Send state to router or store, here just pushing to the placeholder path
-        router.push(`/campaigns/${mockRunId}`)
+            const payload = {
+                selected_agent: data.agentId,
+                prompt: promptText
+            };
+
+            const response = await fetch("http://localhost:8000/api/v1/campaigns", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                console.error("Failed to start campaign");
+                return;
+            }
+
+            const result = await response.json();
+            router.push(`/campaigns/${result.campaign_id}`)
+        } catch (error) {
+            console.error("Error starting campaign:", error);
+        } finally {
+            setIsLoading(false)
+        }
     }
 
     return (
@@ -101,13 +124,16 @@ export function CampaignForm() {
                                     </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    <SelectItem value="marketing">Agent Marketing</SelectItem>
-                                    <SelectItem value="data_analysis">Agent Data</SelectItem>
-                                    <SelectItem value="manus">Manus (General Purpose)</SelectItem>
+                                    <SelectItem value="marketing">🎯 Agent Marketing</SelectItem>
+                                    <SelectItem value="linkedin">💼 Agent LinkedIn</SelectItem>
+                                    <SelectItem value="data_analysis">📊 Agent Data</SelectItem>
+                                    <SelectItem value="manus">🤖 Manus (General Purpose)</SelectItem>
                                 </SelectContent>
                             </Select>
                             <FormDescription>
-                                L'Agent Marketing est recommandé pour le SEO, la stratégie de contenu et la veille concurrentielle.
+                                {selectedAgentId === "linkedin"
+                                    ? "L'Agent LinkedIn utilise un vrai navigateur pour interagir avec LinkedIn."
+                                    : "L'Agent Marketing est recommandé pour le SEO, la stratégie de contenu et la veille concurrentielle."}
                             </FormDescription>
                             <FormMessage />
                         </FormItem>
@@ -181,7 +207,32 @@ export function CampaignForm() {
                     </>
                 )}
 
-                <Button type="submit">Lancer la Campagne</Button>
+                {selectedAgentId === "linkedin" && (
+                    <FormField
+                        control={form.control}
+                        name="keyword"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Tâche LinkedIn</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        placeholder="Ex: Trouver 5 fondateurs de startups AI à Paris"
+                                        {...field}
+                                    />
+                                </FormControl>
+                                <FormDescription>
+                                    Décrivez en détail ce que l'agent doit faire sur LinkedIn.
+                                </FormDescription>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )}
+
+                <Button type="submit" disabled={isLoading}>
+                    {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {isLoading ? "Lancement..." : "Lancer la Campagne"}
+                </Button>
             </form>
         </Form>
     )

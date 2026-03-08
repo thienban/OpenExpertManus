@@ -124,6 +124,13 @@ class DaytonaSettings(BaseModel):
     )
 
 
+class LinkedInSettings(BaseModel):
+    """LinkedIn credentials for browser automation."""
+
+    email: str = Field("", description="LinkedIn account email")
+    password: str = Field("", description="LinkedIn account password")
+
+
 class MCPServerConfig(BaseModel):
     """Configuration for a single MCP server"""
 
@@ -188,6 +195,9 @@ class AppConfig(BaseModel):
     )
     daytona_config: Optional[DaytonaSettings] = Field(
         None, description="Daytona configuration"
+    )
+    linkedin_config: Optional[LinkedInSettings] = Field(
+        None, description="LinkedIn credentials for browser automation"
     )
 
     class Config:
@@ -324,6 +334,7 @@ class Config:
             "mcp_config": mcp_settings,
             "run_flow_config": run_flow_settings,
             "daytona_config": daytona_settings,
+            "linkedin_config": LinkedInSettings(**raw_config.get("linkedin", {})),
         }
 
         self._config = AppConfig(**config_dict)
@@ -347,6 +358,10 @@ class Config:
     @property
     def search_config(self) -> Optional[SearchSettings]:
         return self._config.search_config
+
+    @property
+    def linkedin_config(self) -> LinkedInSettings:
+        return self._config.linkedin_config
 
     @property
     def mcp_config(self) -> MCPSettings:
